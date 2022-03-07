@@ -153,8 +153,30 @@ def get_movie_detail_in_html(request, movie_details):
                          + '<p>' + 'Overview: </br>' + movie_details['overview'] + '</p>' \
                          + '<p> Vote Average:</br>' + va + '</p>' \
                          + '<p> Vote Count:</br>' + vc + '</p>' \
-                         + similar_href + '</br></br></br>' \
-                         + all_href
+                         + similar_href + '</br></br>' \
+                         + all_href + '</br></br>'
+    return movie_details_html
+
+
+def parse_ordered_list_of_providers(providers):
+    list_items = ''
+    for provider in providers:
+        list_items += '<li>' + provider.get('provider_name', 'NA') + '</li>'
+    return '<ol>{}</ol>'.format(list_items)
+
+
+def get_movie_providers_in_html(request, movie_providers):
+    link = movie_providers.get('link', build_uri(request, '/movies'))
+    renters = movie_providers.get('rent', [{'provider_name': 'NA'}])
+    flat_raters = movie_providers.get('flatrate', [{'provider_name': 'NA'}])
+    sellers = movie_providers.get('buy', [{'provider_name': 'NA'}])
+    watch_link = '<a href="{}">{}</a>'.format(link, 'Watch')
+    api_credits = '<p>Powered by TMDB and JustWatch</p>'
+    movie_details_html = '</br>Rent:' + parse_ordered_list_of_providers(renters) \
+                         + 'Flat:' + parse_ordered_list_of_providers(flat_raters) \
+                         + 'Buy:' + parse_ordered_list_of_providers(sellers) \
+                         + watch_link \
+                         + api_credits
     return movie_details_html
 
 
@@ -163,8 +185,31 @@ def movie_detail(request, movie_id):
     heading1 = '<p>' + 'Movie details: ' + '</p>'
     response.write(heading1)
     movie_details = fetch_movie_detail(movie_id)
+    movie_providers = fetch_movie_providers(movie_id)
     response.write(get_movie_detail_in_html(request, movie_details))
+    response.write(get_movie_providers_in_html(request, movie_providers))
     return response
+
+
+def fetch_movie_providers(movie_id):
+    connection = Connect("api.themoviedb.org")
+    json_data = dict()
+    try:
+        endpoint_parse = '/3/movie/{}/watch/providers?api_key={}'
+        endpoint = endpoint_parse.format(movie_id, MOVIE_API_KEY)
+        connection.request("GET", endpoint)
+        data = connection.getresponse().read().decode("utf-8")
+        default_provider_data = {'buy': 'NA', 'flat_rate': 'No providers'}
+        json_data = json.loads(data).get('results', {}).get('CA', default_provider_data)
+    except TypeError as error:
+        json_data['error'] = error
+    if 'status_code' in json_data and json_data['status_code'] == 34:
+        json_data['title'] = 'No such movie found'
+        json_data['overview'] = 'Try other movies from below URL'
+        json_data['vote_average'] = 0.0
+        json_data['vote_count'] = 0
+        json_data['id'] = movie_id
+    return json_data
 
 
 def similar_movies(request, movie_id):
