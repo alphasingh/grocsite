@@ -73,6 +73,34 @@ def fetch_movies(request) -> [str]:
     return top_movies
 
 
+def fetch_similar_movies(request, movie_id) -> [str]:
+    similar = list()
+    similar.append({'name': 'Based on', 'url': build_uri(request, '/movies/' + movie_id)})
+    connection = Connect("api.themoviedb.org")
+    json_data = dict()
+    try:
+        api_key = '?api_key=' + MOVIE_API_KEY
+        similar_movies_endpoint = '/3/movie/{}/similar{}'.format(movie_id, api_key)
+        connection.request("GET", similar_movies_endpoint)
+        res = connection.getresponse()
+        data = res.read()
+        json_data = json.loads(data.decode("utf-8"))
+        print(json_data)
+        for movie in json_data['results']:
+            movie_url = build_uri(request, '/movies/' + str(movie['id']))
+            movie_json = {'name': movie['title'], 'url': movie_url}
+            similar.append(movie_json)
+        print('Movies fetched from API:', len(similar))
+    except TypeError as error:
+        json_data['error'] = error
+    if 'status_code' in json_data and json_data['status_code'] == 34:
+        json_data['title'] = 'No such movie found'
+        json_data['overview'] = 'Try other movies from below URL'
+        json_data['vote_average'] = 0.0
+        json_data['vote_count'] = 0
+    return similar
+
+
 def fetch_movie_detail(movie_id: str) -> dict:
     connection = Connect("api.themoviedb.org")
     headers = {}
@@ -98,7 +126,7 @@ def fetch_movie_detail(movie_id: str) -> dict:
 
 def movies(request):
     response = HttpResponse()
-    heading1 = '<p>' + 'Different movies fetched dynamically: ' + '</p>'
+    heading1 = '<p>' + 'Top movies fetched dynamically: ' + '</p>'
     response.write(heading1)
     list_items = ''
     for movie in fetch_movies(request):
@@ -113,11 +141,16 @@ def get_movie_detail_in_html(request, movie_details):
     t = movie_details['title']
     va = str(movie_details["vote_average"])
     vc = str(movie_details["vote_count"])
-    all_href = '<a href="{}">{}</a>'.format(build_uri(request, '/movies/'), 'Show All Movies')
+    movie_id = str(movie_details['id'])
+    top_movies_page = build_uri(request, '/movies/')
+    similar_movies_page = build_uri(request, '/movies/{}/similar'.format(movie_id))
+    all_href = '<a href="{}">{}</a>'.format(top_movies_page, 'Show Top Movies')
+    similar_href = '<a href="{}">{}</a>'.format(similar_movies_page, 'Show Similar Movies')
     movie_details_html = '<p>' + 'Title:<strong> </br>' + t + '</strong></p>' \
                          + '<p>' + 'Overview: </br>' + movie_details['overview'] + '</p>' \
                          + '<p> Vote Average:</br>' + va + '</p>' \
                          + '<p> Vote Count:</br>' + vc + '</p>' \
+                         + similar_href + '</br></br></br>' \
                          + all_href
     return movie_details_html
 
@@ -128,4 +161,17 @@ def movie_detail(request, movie_id):
     response.write(heading1)
     movie_details = fetch_movie_detail(movie_id)
     response.write(get_movie_detail_in_html(request, movie_details))
+    return response
+
+
+def similar_movies(request, movie_id):
+    response = HttpResponse()
+    heading = '<p>' + 'Similar movies: ' + '</p>'
+    response.write(heading)
+    list_items = ''
+    for movie in fetch_similar_movies(request, movie_id):
+        href = '<a href="{}">{}</a>'.format(movie['url'], movie['name'])
+        list_items += '<li>' + href + '</li>'
+    ul = '<ul>{}</ul>'.format(list_items)
+    response.write(ul)
     return response
