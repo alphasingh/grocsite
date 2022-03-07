@@ -1,21 +1,15 @@
 from django.shortcuts import render, get_object_or_404
 from django.http import HttpResponse
 from .models import Type, Item
+from http.client import HTTPSConnection as Connect
+import json
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
+MOVIE_API_KEY = os.getenv('MOVIE_API_KEY')
 
 
-# Create your views here.
-# books=[
-#     {
-#         'author': 'Usama',
-#         'title':'Intro to Django',
-#         'date':'March 01, 2022'
-#     },
-#     {
-#         'author': 'Rahul',
-#         'title':'Intro to Mental Strength',
-#         'date':'March 01, 2022'
-#     }
-# ]
 def index(request):
     # type_list = Type.objects.all().order_by('id')
     item_list = Item.objects.all().order_by('-price')[:7]
@@ -27,13 +21,6 @@ def index(request):
         response.write(para)
     return response
 
-
-# def index(request):
-#     context={
-#         'books':books
-#     }
-#     #return HttpResponseBadRequest()
-#     return render(request, 'dummy/index.html', context)
 
 def about(request):
     # return HttpResponse('This is the about page')
@@ -50,4 +37,72 @@ def detail(request, type_no):
     for item in items_with_type:
         para = '<p>' + str(item.price) + ': ' + str(item) + '</p>'
         response.write(para)
+    return response
+
+
+# will return list of movie names
+def fetch_movies() -> [str]:
+    movie_names = list()
+    movie_names.append({'name': 'Fight Club', 'url': 'http://localhost:8000/movies/550'})
+    movie_names.append({'name': 'Poseidon', 'url': 'http://localhost:8000/movies/551'})
+    movie_names.append({'name': 'Dogville', 'url': 'http://localhost:8000/movies/553'})
+    return movie_names
+
+
+def fetch_movie_detail(movie_id: str) -> dict:
+    # https://api.themoviedb.org/3/movie/550?api_key=c3660ed96c3beaf6808809efaa5e31d7
+    connection = Connect("api.themoviedb.org")
+    headers = {}
+    payload = ''
+    json_data = dict()
+    try:
+        api_key = '?api_key=' + MOVIE_API_KEY
+        movie_id_endpoint = "/3/movie/" + movie_id + api_key
+        connection.request("GET", movie_id_endpoint, payload, headers)
+        res = connection.getresponse()
+        data = res.read()
+        json_data = json.loads(data.decode("utf-8"))
+    except TypeError as error:
+        json_data['error'] = error
+    if 'status_code' in json_data and json_data['status_code'] == 34:
+        json_data['try_url'] = 'http://localhost:8000/movies/550'
+        json_data['title'] = 'No such movie found'
+        json_data['overview'] = 'Try other movies from below URL'
+        json_data['vote_average'] = 0.0
+        json_data['vote_count'] = 0
+    return json_data
+
+
+def movies(request):
+    response = HttpResponse()
+    heading1 = '<p>' + 'Different movies fetched dynamically: ' + '</p>'
+    response.write(heading1)
+    list_items = ''
+    for movie in fetch_movies():
+        href = '<a href="{}">{}</a>'.format(movie['url'], movie['name'])
+        list_items += '<li>' + href + '</li>'
+    ul = '<ul>{}</ul>'.format(list_items)
+    response.write(ul)
+    return response
+
+
+def get_movie_detail_in_html(movie_details):
+    t = movie_details['title']
+    va = str(movie_details["vote_average"])
+    vc = str(movie_details["vote_count"])
+    all_href = '<a href="{}">{}</a>'.format('http://localhost:8000/movies/', 'Show All Movies')
+    movie_details_html = '<p>' + 'Title:<strong> </br>' + t + '</strong></p>' \
+                         + '<p>' + 'Overview: </br>' + movie_details['overview'] + '</p>' \
+                         + '<p> Vote Average:</br>' + va + '</p>' \
+                         + '<p> Vote Count:</br>' + vc + '</p>' \
+                         + all_href
+    return movie_details_html
+
+
+def movie_detail(request, movie_id):
+    response = HttpResponse()
+    heading1 = '<p>' + 'Movie details: ' + '</p>'
+    response.write(heading1)
+    movie_details = fetch_movie_detail(movie_id)
+    response.write(get_movie_detail_in_html(movie_details))
     return response
