@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+Home page
+<br>
+<span id="hello-msg">Hello, {{ request.user }}</span>
+<span><a href="{% url 'loginapp:logout' %}">logout</a></span>
+</body>
+</html>
