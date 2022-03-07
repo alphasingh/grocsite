@@ -69,7 +69,6 @@ def fetch_movie_detail(movie_id: str) -> dict:
     except TypeError as error:
         json_data['error'] = error
     if 'status_code' in json_data and json_data['status_code'] == 34:
-        json_data['try_url'] = build_uri('/movies/550')
         json_data['title'] = 'No such movie found'
         json_data['overview'] = 'Try other movies from below URL'
         json_data['vote_average'] = 0.0
