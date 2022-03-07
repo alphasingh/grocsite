@@ -54,12 +54,12 @@ def fetch_movies(request) -> [str]:
 
 
 def fetch_movie_detail(movie_id: str) -> dict:
-    # https://api.themoviedb.org/3/movie/550?api_key=c3660ed96c3beaf6808809efaa5e31d7
     connection = Connect("api.themoviedb.org")
     headers = {}
     payload = ''
     json_data = dict()
     try:
+        print(MOVIE_API_KEY)
         api_key = '?api_key=' + MOVIE_API_KEY
         movie_id_endpoint = "/3/movie/" + movie_id + api_key
         connection.request("GET", movie_id_endpoint, payload, headers)
