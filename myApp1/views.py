@@ -199,7 +199,7 @@ def fetch_movie_providers(movie_id):
         endpoint = endpoint_parse.format(movie_id, MOVIE_API_KEY)
         connection.request("GET", endpoint)
         data = connection.getresponse().read().decode("utf-8")
-        default_provider_data = {'buy': 'NA', 'flat_rate': 'No providers'}
+        default_provider_data = {}
         json_data = json.loads(data).get('results', {}).get('CA', default_provider_data)
     except TypeError as error:
         json_data['error'] = error
