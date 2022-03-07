@@ -24,7 +24,7 @@ SECRET_KEY = 'django-insecure-n12v=86nl8+w@)c-ck+cbh0-8jpbbxue*dg*csek*)ap6%lzfk
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['alphasingh.pythonanywhere.com', 'localhost']
+ALLOWED_HOSTS = ['alphasingh.pythonanywhere.com', 'localhost', 'g4django.herokuapp.com']
 
 # Application definition
 
