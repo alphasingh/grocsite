@@ -46,11 +46,32 @@ def build_uri(request, uri_endpoint):
 
 # will return list of movie names
 def fetch_movies(request) -> [str]:
-    movie_names = list()
-    movie_names.append({'name': 'Fight Club', 'url': build_uri(request, '/movies/550')})
-    movie_names.append({'name': 'Poseidon', 'url': build_uri(request, '/movies/551')})
-    movie_names.append({'name': 'Dogville', 'url': build_uri(request, '/movies/553')})
-    return movie_names
+    top_movies = list()
+    top_movies.append({'name': 'Fight Club', 'url': build_uri(request, '/movies/550')})
+    top_movies.append({'name': 'Poseidon', 'url': build_uri(request, '/movies/551')})
+    top_movies.append({'name': 'Dogville', 'url': build_uri(request, '/movies/553')})
+    connection = Connect("api.themoviedb.org")
+    json_data = dict()
+    try:
+        api_key = '?api_key=' + MOVIE_API_KEY
+        top_movies_endpoint = '/3/movie/top_rated' + api_key
+        connection.request("GET", top_movies_endpoint)
+        res = connection.getresponse()
+        data = res.read()
+        json_data = json.loads(data.decode("utf-8"))
+        for movie in json_data['results']:
+            movie_url = build_uri(request, '/movies/' + str(movie['id']))
+            movie_json = {'name': movie['title'], 'url': movie_url}
+            top_movies.append(movie_json)
+        print('Movies fetched from API:', len(top_movies))
+    except TypeError as error:
+        json_data['error'] = error
+    if 'status_code' in json_data and json_data['status_code'] == 34:
+        json_data['title'] = 'No such movie found'
+        json_data['overview'] = 'Try other movies from below URL'
+        json_data['vote_average'] = 0.0
+        json_data['vote_count'] = 0
+    return top_movies
 
 
 def fetch_movie_detail(movie_id: str) -> dict:
