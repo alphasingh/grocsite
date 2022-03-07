@@ -93,6 +93,8 @@ def fetch_similar_movies(request, movie_id) -> [str]:
         print('Movies fetched from API:', len(similar))
     except TypeError as error:
         json_data['error'] = error
+    except KeyError as error:
+        similar.append({'name': 'No similar movies', 'url': build_uri(request, '/movies')})
     if 'status_code' in json_data and json_data['status_code'] == 34:
         json_data['title'] = 'No such movie found'
         json_data['overview'] = 'Try other movies from below URL'
@@ -121,6 +123,7 @@ def fetch_movie_detail(movie_id: str) -> dict:
         json_data['overview'] = 'Try other movies from below URL'
         json_data['vote_average'] = 0.0
         json_data['vote_count'] = 0
+        json_data['id'] = movie_id
     return json_data
 
 
