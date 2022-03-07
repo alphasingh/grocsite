@@ -11,14 +11,13 @@ MOVIE_API_KEY = os.getenv('MOVIE_API_KEY')
 
 
 def index(request):
-    # type_list = Type.objects.all().order_by('id')
-    item_list = Item.objects.all().order_by('-price')[:7]
     response = HttpResponse()
-    heading1 = '<p>' + 'Different Items (sorted by price, limited to top 7 most expensive items): ' + '</p>'
+    heading1 = '<p>' + 'This is the main page of group#4 "Movies Django project"' + '</p>'
+    contributions = '<p>' + 'Contributors: Abhay, Rahul, Sarab, Shruti' + '</p>'
     response.write(heading1)
-    for item in item_list:
-        para = '<p> $' + str(item.price) + ' ' + str(item) + '</p>'
-        response.write(para)
+    response.write(contributions)
+    all_href = '<a href="{}">{}</a>'.format(build_uri(request, '/movies/'), 'Show All Movies')
+    response.write(all_href)
     return response
 
 
