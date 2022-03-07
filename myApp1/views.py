@@ -40,12 +40,16 @@ def detail(request, type_no):
     return response
 
 
+def build_uri(request, uri_endpoint):
+    return request.build_absolute_uri(uri_endpoint)
+
+
 # will return list of movie names
-def fetch_movies() -> [str]:
+def fetch_movies(request) -> [str]:
     movie_names = list()
-    movie_names.append({'name': 'Fight Club', 'url': 'http://localhost:8000/movies/550'})
-    movie_names.append({'name': 'Poseidon', 'url': 'http://localhost:8000/movies/551'})
-    movie_names.append({'name': 'Dogville', 'url': 'http://localhost:8000/movies/553'})
+    movie_names.append({'name': 'Fight Club', 'url': build_uri(request, '/movies/550')})
+    movie_names.append({'name': 'Poseidon', 'url': build_uri(request, '/movies/551')})
+    movie_names.append({'name': 'Dogville', 'url': build_uri(request, '/movies/553')})
     return movie_names
 
 
@@ -65,7 +69,7 @@ def fetch_movie_detail(movie_id: str) -> dict:
     except TypeError as error:
         json_data['error'] = error
     if 'status_code' in json_data and json_data['status_code'] == 34:
-        json_data['try_url'] = 'http://localhost:8000/movies/550'
+        json_data['try_url'] = build_uri('/movies/550')
         json_data['title'] = 'No such movie found'
         json_data['overview'] = 'Try other movies from below URL'
         json_data['vote_average'] = 0.0
@@ -78,7 +82,7 @@ def movies(request):
     heading1 = '<p>' + 'Different movies fetched dynamically: ' + '</p>'
     response.write(heading1)
     list_items = ''
-    for movie in fetch_movies():
+    for movie in fetch_movies(request):
         href = '<a href="{}">{}</a>'.format(movie['url'], movie['name'])
         list_items += '<li>' + href + '</li>'
     ul = '<ul>{}</ul>'.format(list_items)
@@ -86,11 +90,11 @@ def movies(request):
     return response
 
 
-def get_movie_detail_in_html(movie_details):
+def get_movie_detail_in_html(request, movie_details):
     t = movie_details['title']
     va = str(movie_details["vote_average"])
     vc = str(movie_details["vote_count"])
-    all_href = '<a href="{}">{}</a>'.format('http://localhost:8000/movies/', 'Show All Movies')
+    all_href = '<a href="{}">{}</a>'.format(build_uri(request, '/movies/'), 'Show All Movies')
     movie_details_html = '<p>' + 'Title:<strong> </br>' + t + '</strong></p>' \
                          + '<p>' + 'Overview: </br>' + movie_details['overview'] + '</p>' \
                          + '<p> Vote Average:</br>' + va + '</p>' \
@@ -104,5 +108,5 @@ def movie_detail(request, movie_id):
     heading1 = '<p>' + 'Movie details: ' + '</p>'
     response.write(heading1)
     movie_details = fetch_movie_detail(movie_id)
-    response.write(get_movie_detail_in_html(movie_details))
+    response.write(get_movie_detail_in_html(request, movie_details))
     return response
