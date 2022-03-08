@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+This is an Online Grocery Store order
+<h2>{{ note }}</h2>
+<form action="{% url 'myApp1:order' %}" method="post">
+    {% csrf_token %}
+    {{ filled }}
+    <input type="submit" value="submit order">
+</form>
+</body>
+</html>

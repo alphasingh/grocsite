@@ -1,5 +1,7 @@
 from django.shortcuts import render, get_object_or_404
 from django.http import HttpResponse
+
+from .forms import BurgerForm
 from .models import Type, Item
 
 
@@ -51,3 +53,13 @@ def detail(request, type_no):
         para = '<p>' + str(item.price) + ': ' + str(item) + '</p>'
         response.write(para)
     return response
+
+
+def order(request):
+    if request.method == 'POST':
+        filled_form = BurgerForm(request.POST)
+        note = 'Valid order' if filled_form.is_valid() else 'Invalid order'
+        return render(request, 'myApp1/order.html', {'filled': BurgerForm(), 'note': note})
+    else:
+        form = BurgerForm()
+        return render(request, 'myApp1/order.html', {'filled': form})
