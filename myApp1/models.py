@@ -1,7 +1,5 @@
 from django.db import models
-import datetime
 from django.contrib.auth.models import User
-from django.utils import timezone
 
 
 # Create your models here.
@@ -54,3 +52,19 @@ class OrderItem(models.Model):
 
     def total_price(self):
         return self.item.price * self.no_of_items
+
+
+class Kind(models.Model):
+    title = models.CharField(max_length=100)
+
+    def __str__(self):
+        return self.title
+
+
+class Burger(models.Model):
+    topping1 = models.CharField(max_length=100)
+    topping2 = models.CharField(max_length=100)
+    kind = models.ForeignKey(Kind, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return 'Burger with toppings {}, {} of kind {}'.format(self.topping1, self.topping2, str(self.kind))

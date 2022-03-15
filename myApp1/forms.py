@@ -1,8 +1,8 @@
 from django import forms
+from .models import Burger
 
 
-class BurgerForm(forms.Form):
-    name = forms.CharField(help_text='Fill your name here')
-    topping1 = forms.CharField(label='Topping 1', max_length=100, widget=forms.TextInput(attrs={'size': 3}))
-    topping2 = forms.CharField(label='Topping 2', max_length=100, widget=forms.TextInput(attrs={'size': 3}))
-    type = forms.ChoiceField(label='Type', choices=[('Sandwich', 'Sandwich'), ('Combo', 'Combo')])
+class BurgerForm(forms.ModelForm):
+    class Meta:
+        model = Burger
+        fields = ['topping1', 'topping2', 'kind']

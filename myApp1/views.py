@@ -62,6 +62,7 @@ def order(request):
         note = 'Valid order' if filled_form.is_valid() else 'Invalid order'
         topping1, topping2 = filled_form.data['topping1'], filled_form.data['topping2']
         message = '\nOrder with topping {} and {} submitted'.format(topping1, topping2)
+        filled_form.save()
         return render(request, 'myApp1/order.html', {'filled': BurgerForm(), 'note': note + message})
     else:
         # unbound form
