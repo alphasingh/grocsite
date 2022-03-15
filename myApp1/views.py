@@ -57,9 +57,13 @@ def detail(request, type_no):
 
 def order(request):
     if request.method == 'POST':
+        # unbound form
         filled_form = BurgerForm(request.POST)
         note = 'Valid order' if filled_form.is_valid() else 'Invalid order'
-        return render(request, 'myApp1/order.html', {'filled': BurgerForm(), 'note': note})
+        topping1, topping2 = filled_form.data['topping1'], filled_form.data['topping2']
+        message = '\nOrder with topping {} and {} submitted'.format(topping1, topping2)
+        return render(request, 'myApp1/order.html', {'filled': BurgerForm(), 'note': note + message})
     else:
+        # unbound form
         form = BurgerForm()
         return render(request, 'myApp1/order.html', {'filled': form})
